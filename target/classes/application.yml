@@ -1,0 +1,89 @@
+spring:
+  application:
+    name: ewallet-service
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/ewallet_db
+    username: ewallet_user
+    password: ${DB_PASSWORD:changeme}
+    driver-class-name: org.postgresql.Driver
+
+    # HikariCP Configuration - Optimized for high concurrency
+    hikari:
+      # Maximum pool size per application instance
+      # With 3 app servers and 3 DB servers (1500 total connections)
+      # Each app server gets 500 connections max
+      maximum-pool-size: 500
+      minimum-idle: 50
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      pool-name: EWalletHikariPool
+
+      # Performance optimization
+      auto-commit: false
+
+      # Connection test query
+      connection-test-query: SELECT 1
+
+      # Leak detection threshold (for debugging)
+      leak-detection-threshold: 60000
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        use_sql_comments: false
+        jdbc:
+          batch_size: 20
+          fetch_size: 50
+        order_inserts: true
+        order_updates: true
+        # Enable second-level cache for read-heavy operations
+        cache:
+          use_second_level_cache: false
+          use_query_cache: false
+
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    default-property-inclusion: non_null
+
+# Server configuration
+server:
+  port: 8080
+  tomcat:
+    threads:
+      max: 400
+      min-spare: 50
+    accept-count: 200
+    max-connections: 10000
+  compression:
+    enabled: true
+
+# Actuator endpoints
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,info
+  endpoint:
+    health:
+      show-details: when-authorized
+  metrics:
+    enable:
+      jvm: true
+      hikaricp: true
+
+# Logging
+logging:
+  level:
+    com.example.ewallet: INFO
+    org.springframework.web: INFO
+    org.hibernate: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
